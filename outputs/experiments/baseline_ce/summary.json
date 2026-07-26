@@ -1,0 +1,8 @@
+{
+    "best_epoch": 9,
+    "best_val_loss": 0.0388,
+    "best_val_dice": 0.8742,
+    "dice_class_1": 0.8684,
+    "dice_class_2": 0.8237,
+    "dice_class_3": 0.9305
+}

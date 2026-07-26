@@ -1,0 +1,17 @@
+{
+    "experiment_name": "ce_dice_augmentation",
+    "loss": "DiceCrossEntropyLoss",
+    "optimizer": "Adam",
+    "epochs": 30,
+    "batch_size": 16,
+    "learning_rate": 0.0001,
+    "num_classes": 4,
+    "seed": 42,
+    "train_patients": 70,
+    "valid_patients": 15,
+    "augmentation": true,
+    "scheduler": "ReduceLROnPlateau",
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 3,
+    "scheduler_min_lr": 1e-06
+}

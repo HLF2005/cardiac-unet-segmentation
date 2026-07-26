@@ -1,0 +1,7 @@
+{
+    "test_loss": 0.0427,
+    "test_dice": 0.8582,
+    "dice_class_1": 0.8248,
+    "dice_class_2": 0.8193,
+    "dice_class_3": 0.9304
+}

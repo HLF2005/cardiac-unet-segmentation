@@ -1,0 +1,1 @@
+"""Cardiac MRI segmentation package."""
