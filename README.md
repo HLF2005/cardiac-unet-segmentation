@@ -62,6 +62,24 @@ python -m scripts.evaluation.visualize_predictions
 python -m scripts.evaluation.evaluate_test
 ```
 
+Comparer automatiquement les expériences :
+
+```bash
+python -m scripts.evaluation.compare_experiments
+```
+
+Calculer les résultats séparément pour chaque patient :
+
+```bash
+python -m scripts.evaluation.evaluate_per_patient
+```
+
+Créer les superpositions pour la présentation :
+
+```bash
+python -m scripts.evaluation.visualize_overlays
+```
+
 Lancer les tests :
 
 ```bash
@@ -102,10 +120,48 @@ Le nom de l'expérience active est défini avec `EXPERIMENT_NAME` dans
 | `ce_dice` | Cross-Entropy + Dice, 10 époques, batch 8 | 0.8913 |
 | `ce_dice_25epochs` | Cross-Entropy + Dice, 25 époques, batch 8 | **0.9157** |
 | `ce_dice_scheduler` | Scheduler, 30 époques, batch 16 | 0.9110 |
+| `ce_dice_augmentation_only` | Augmentation, 25 époques, batch 8 | 0.9125 |
+| `ce_dice_augmentation_30epochs` | Augmentation, 30 époques, batch 8 | 0.9155 |
 | `ce_dice_augmentation` | Augmentation + scheduler, 30 époques, batch 16 | 0.9125 |
 
 Le modèle final est `ce_dice_25epochs`, sélectionné uniquement avec les
 résultats de validation.
+
+### Analyse des expériences
+
+L'ajout de la Dice Loss à la Cross-Entropy améliore le Dice de validation
+de `0.8742` à `0.8913`. Le gain principal concerne la classe 2 :
+
+| Métrique | Cross-Entropy | CE + Dice | Gain |
+|---|---:|---:|---:|
+| Dice moyen | 0.8742 | 0.8913 | +0.0171 |
+| Classe 1 | 0.8684 | 0.8823 | +0.0139 |
+| Classe 2 | 0.8237 | 0.8519 | **+0.0282** |
+| Classe 3 | 0.9305 | 0.9396 | +0.0091 |
+
+Prolonger l'entraînement de 10 à 25 époques produit un second gain
+important :
+
+| Métrique | 10 époques | 25 époques | Gain |
+|---|---:|---:|---:|
+| Dice moyen | 0.8913 | **0.9157** | +0.0245 |
+| Classe 1 | 0.8823 | 0.9161 | +0.0338 |
+| Classe 2 | 0.8519 | 0.8768 | +0.0248 |
+| Classe 3 | 0.9396 | 0.9543 | +0.0147 |
+
+Le meilleur checkpoint est obtenu à l'époque 21. Les performances
+atteignent ensuite un plateau autour de `0.91`.
+
+Le scheduler stabilise la fin de l'entraînement, mais ne dépasse pas le
+meilleur modèle. Son effet ne peut pas être complètement isolé car cette
+expérience utilise aussi un batch de 16.
+
+L'augmentation seule atteint `0.9125` après 25 époques et `0.9155` après
+30 époques. Elle ne produit donc pas de gain mesurable par rapport au
+modèle sans augmentation (`0.9157`).
+
+Les valeurs de loss ne sont pas comparées entre la baseline et les
+autres expériences, car elles correspondent à des fonctions différentes.
 
 ## Résultats finaux
 
@@ -127,7 +183,12 @@ patient est :
 ```
 
 Le meilleur patient obtient `0.9549` et le cas le plus difficile
-`0.7619`.
+`0.7619` :
+
+```text
+Meilleur patient : patient078
+Pire patient     : patient037
+```
 
 | Dice par patient | Moyenne ± écart-type |
 |---|---:|
@@ -137,6 +198,18 @@ Le meilleur patient obtient `0.9549` et le cas le plus difficile
 
 Les fichiers détaillés et les courbes sont disponibles dans
 `outputs/experiments/`. 
+
+Le Dice test global est presque identique au Dice de validation :
+
+```text
+Validation : 0.9157
+Test       : 0.9163
+Écart      : +0.0006
+```
+
+Cette proximité indique que le modèle généralise correctement sur les
+patients non vus. La classe 3 est la plus facile à segmenter. La classe 1
+présente la plus forte variabilité entre patients.
 
 ### Comparaison des expériences
 
