@@ -1,7 +1,6 @@
 # Segmentation cardiaque avec U-Net
 
-Projet pédagogique de segmentation 2D d'IRM cardiaques avec un U-Net
-implémenté en PyTorch.
+Projet de segmentation 2D d'IRM cardiaques avec un U-Net.
 
 Le modèle prédit quatre classes pour chaque pixel : le fond et trois
 structures cardiaques.
@@ -19,11 +18,11 @@ structures cardiaques.
 │   ├── evaluation/               # Visualisation des prédictions
 │   └── training/                 # Tests du pipeline d'entraînement
 ├── src/
-│   ├── data/                     # Dataset et split patient
+│   ├── data/                     # Dataset
 │   ├── metrics/                  # Métriques de segmentation
 │   ├── models/                   # Architecture U-Net
 │   ├── training/                 # Validation
-│   └── config.py                 # Configuration partagée
+│   └── config.py                 # Configuration 
 └── train.py                      # Entraînement principal
 ```
 
@@ -45,18 +44,6 @@ Inspecter tout le dataset :
 python -m scripts.data.inspect_dataset
 ```
 
-Inspecter un exemple :
-
-```bash
-python -m scripts.data.inspect_sample
-```
-
-Tester le sur-apprentissage sur quatre coupes :
-
-```bash
-python -m scripts.training.overfit_small_batch
-```
-
 Entraîner le modèle :
 
 ```bash
@@ -75,24 +62,6 @@ python -m scripts.evaluation.visualize_predictions
 python -m scripts.evaluation.evaluate_test
 ```
 
-Comparer automatiquement les expériences :
-
-```bash
-python -m scripts.evaluation.compare_experiments
-```
-
-Calculer les résultats par patient :
-
-```bash
-python -m scripts.evaluation.evaluate_per_patient
-```
-
-Créer les superpositions pour la présentation :
-
-```bash
-python -m scripts.evaluation.visualize_overlays
-```
-
 Lancer les tests :
 
 ```bash
@@ -100,14 +69,14 @@ python -m unittest discover -s tests
 ```
 
 ## Split
+Le dataset peut être récupéré avec ce lien: https://www.creatis.insa-lyon.fr/Challenge/acdc/databasesTraining.html
 
 Le split est réalisé au niveau patient afin d'éviter qu'un même patient
 apparaisse dans plusieurs ensembles :
 
-- 70 patients pour l'entraînement ;
-- 15 patients pour la validation ;
-- 15 patients pour le test ;
-- graine aléatoire : `42`.
+- 70 patients pour l'entraînement 
+- 15 patients pour la validation 
+- 15 patients pour le test 
 
 Ces valeurs et les principaux hyperparamètres se trouvent dans
 `src/config.py`.
@@ -167,8 +136,7 @@ Le meilleur patient obtient `0.9549` et le cas le plus difficile
 | Classe 3 | 0.9473 ± 0.0362 |
 
 Les fichiers détaillés et les courbes sont disponibles dans
-`outputs/experiments/`. Les checkpoints ne sont pas versionnés car ils
-sont volumineux.
+`outputs/experiments/`. 
 
 ### Comparaison des expériences
 
@@ -183,7 +151,7 @@ centrale montre la vérité terrain et la colonne de droite la prédiction.
 
 ## Données
 
-Les données médicales ne sont pas incluses dans le dépôt. Elles doivent
+Les données médicales ne sont pas incluses dans le repo. Elles doivent
 être placées dans :
 
 ```text
@@ -195,9 +163,7 @@ termine par `_gt.nii.gz`.
 
 ## Limites
 
-- Le modèle traite les volumes sous forme de coupes 2D indépendantes.
-- Le contexte entre les coupes voisines n'est pas utilisé.
-- Les images sont redimensionnées à `256 × 256`.
-- Les expériences avec scheduler utilisent aussi un batch size différent,
-  ce qui limite l'interprétation isolée de cet hyperparamètre.
-- Les résultats proviennent d'une seule graine d'entraînement.
+- **Attention U-Net** : ajouter des attention gates pour que le modèle se concentre sur les zones cardiaques et ignore le fond
+- **U-Net 3D** : exploiter la dimension spatiale des volumes IRM plutôt que de traiter les slices 2D indépendamment
+- **Pre-training** : partir d'un encodeur pré-entraîné sur ImageNe
+
