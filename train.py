@@ -28,19 +28,13 @@ from src.training.losses import DiceCrossEntropyLoss
 
 
 def main():
-    torch.manual_seed(RANDOM_SEED)
+    torch.manual_seed(RANDOM_SEED) # Set random seed for reproducibility
 
+    # Create output directory
     experiment_dir = EXPERIMENTS_DIR / EXPERIMENT_NAME
-
-    if (experiment_dir / "history.csv").exists():
-        raise FileExistsError(
-            f"L'expérience '{EXPERIMENT_NAME}' existe déjà. "
-            "Choisis un nouveau EXPERIMENT_NAME dans src/config.py "
-            "pour ne pas écraser ses résultats."
-        )
-
     experiment_dir.mkdir(parents=True, exist_ok=True)
 
+    # Split the patient paths in train / validation / test sets
     training_path, valid_path, test_path = create_patient_split(
         data_dir=DATA_DIR,
         seed=RANDOM_SEED,
@@ -48,10 +42,12 @@ def main():
         valid_patients=VALID_PATIENTS,
     )
 
+    # Create datasets
     training_dataset = CardiacDataset(training_path, augmentation=True)
     valid_dataset = CardiacDataset(valid_path, augmentation=False)
     test_dataset = CardiacDataset(test_path, augmentation=False)
 
+    # Tests
     assert not set(training_path) & set(valid_path)
     assert not set(training_path) & set(test_path)
     assert not set(valid_path) & set(test_path)
@@ -72,6 +68,7 @@ def main():
         f"{len(test_dataset)} coupes"
     )
 
+    # Build data loader
     training_loader = DataLoader(training_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
     valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
@@ -81,7 +78,7 @@ def main():
         device = torch.device("mps")
     else:
         device = torch.device("cpu")
-    print(f"Device utilisé : {device}")
+    print(f"Device used : {device}")
 
     model = UNet(in_channels=1, out_channels=NUM_CLASSES).to(device)
     loss_function  = DiceCrossEntropyLoss(num_classes=NUM_CLASSES,
@@ -115,17 +112,15 @@ def main():
         "scheduler_patience": 3,
         "scheduler_min_lr": 1e-6,
     }
-    save_json(
-        experiment_config,
-        experiment_dir / "config.json",
-    )
+    save_json(experiment_config, experiment_dir / "config.json")
 
-    print(f"Expérience : {EXPERIMENT_NAME}")
-    print(f"Résultats : {experiment_dir}")
+    print(f"Experiments : {EXPERIMENT_NAME}")
+    print(f"Result : {experiment_dir}")
 
     history = []
     best_dice = float("-inf")
 
+    #  Training loop
     for epoch in range(NUM_EPOCHS):
         model.train()
         total_train_loss = 0.0
@@ -149,6 +144,7 @@ def main():
 
         average_train_loss = total_train_loss / total_train_samples
 
+        # Validation
         metrics = validate_one_epoch(
             model=model,
             data_loader=valid_loader,
@@ -175,10 +171,7 @@ def main():
             "learning_rate": current_learning_rate,
         }
         history.append(epoch_results)
-        save_history(
-            history,
-            experiment_dir / "history.csv",
-        )
+        save_history( history, experiment_dir / "history.csv")
 
         if average_dice > best_dice:
             best_dice = average_dice
@@ -212,10 +205,7 @@ def main():
             f"| {dice_details}"
         )
 
-    save_curves(
-        history,
-        experiment_dir / "curves.png",
-    )
+    save_curves( history, experiment_dir / "curves.png")
 
 
 if __name__ == "__main__":
