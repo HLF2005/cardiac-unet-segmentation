@@ -3,7 +3,8 @@ __pycache__/
 *.py[cod]
 .venv/
 
-data/
+data/training/
+scripts/data/
 outputs/checkpoints/
 outputs/figures/
 outputs/experiments/*/best_model.pth
